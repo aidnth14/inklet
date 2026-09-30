@@ -9,9 +9,11 @@ High-precision 1:1 facial puppet tracker with Hybrid Geometry & Blendshapes:
 - FastVideoCapture: Zero-latency asynchronous camera I/O.
 """
 
+import sys
+# Prevent OpenCV binary extension recursive loader bug in PyInstaller
+sys.OpenCV_REPLACE_SYS_PATH_0 = True
 import cv2
 import os
-import sys
 import time
 import math
 import logging
@@ -22,7 +24,7 @@ from PySide6.QtCore import QThread, Signal
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 YUNET_MODEL = os.path.join(MODELS_DIR, "face_detection_yunet_2023mar.onnx")
 

@@ -6,11 +6,31 @@ __pycache__/
 .Python
 env/
 venv/
+venv-x86/
 ENV/
 .venv
 
 # PySide / Qt
 *.qrc
+
+# Build artifacts & installers
+build/
+dist/
+*.dmg
+*.pkg
+*.exe
+*.AppImage
+*.tar.gz
+*.zip
+app_icon.icns
+app_icon.ico
+inklet.png
+inklet.iconset/
+*.spec.bak
+
+# Runtime markers
+.inklet_installed
+.inklet_setup_complete
 
 # IDE & OS
 .DS_Store
@@ -18,3 +38,6 @@ ENV/
 .vscode/
 *.swp
 *.swo
+
+# Kilo tooling worktrees
+.kilo/worktrees/

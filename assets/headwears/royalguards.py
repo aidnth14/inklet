@@ -26,10 +26,16 @@ class RoyalGuardHeadwear:
     @classmethod
     def load(cls):
         """Loads sprite, auto-crops visible bounding box, and creates white and ruby/deep-berry silhouettes."""
-        if not os.path.exists(cls.sprite_path):
-            return None
+        path = cls.sprite_path
+        if not os.path.exists(path):
+            base = getattr(sys, '_MEIPASS', '')
+            alt = os.path.join(base, "assets", "headwears", cls.sprite_filename)
+            if os.path.exists(alt):
+                path = alt
+            else:
+                return None
 
-        raw_pm = QPixmap(cls.sprite_path)
+        raw_pm = QPixmap(path)
         if raw_pm.isNull():
             return None
 

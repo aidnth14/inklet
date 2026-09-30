@@ -27,11 +27,15 @@ class CrimsonBeretHeadwear:
     @classmethod
     def load(cls):
         """Loads sprite, auto-crops visible bounding box, and creates white and ruby/deep-berry silhouettes."""
-        if not os.path.exists(cls.sprite_path):
-            fallback = os.path.join(os.path.dirname(os.path.dirname(DIR)), "cap.png")
-            path = fallback if os.path.exists(fallback) else cls.sprite_path
-        else:
-            path = cls.sprite_path
+        path = cls.sprite_path
+        if not os.path.exists(path):
+            base = getattr(sys, '_MEIPASS', '')
+            alt = os.path.join(base, "assets", "headwears", cls.sprite_filename)
+            if os.path.exists(alt):
+                path = alt
+            else:
+                fallback = os.path.join(os.path.dirname(os.path.dirname(DIR)), "cap.png")
+                path = fallback if os.path.exists(fallback) else cls.sprite_path
 
         raw_pm = QPixmap(path)
         if raw_pm.isNull():

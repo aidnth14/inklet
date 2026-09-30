@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+# Prevent OpenCV binary extension recursive loader bug in PyInstaller
+sys.OpenCV_REPLACE_SYS_PATH_0 = True
 import time
 import threading
 import subprocess
@@ -21,10 +23,10 @@ FONT_MONO = ("Courier", 11)
 
 REQUIRED_PACKAGES = [
     "PySide6",
-    "opencv-python",
+    "opencv-python-headless==4.8.1.78",
+    "opencv-contrib-python-headless==4.8.1.78",
     "mediapipe",
-    "numpy",
-    "scipy",
+    "numpy<2",
     "Pillow"
 ]
 
@@ -142,7 +144,10 @@ class InkletWizard(tk.Tk):
 
     def load_app_icon(self):
         try:
-            icon_path = "/Users/shoroz/Desktop/inklet/wizard.png"
+            base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+            icon_path = os.path.join(base_dir, "wizard.png")
+            if not os.path.exists(icon_path):
+                icon_path = "/Users/shoroz/Desktop/inklet/wizard.png"
             if os.path.exists(icon_path):
                 from PIL import Image, ImageTk
                 raw_icon = Image.open(icon_path).convert("RGBA")
@@ -204,7 +209,10 @@ class InkletWizard(tk.Tk):
         self.frames.append(self.build_step_5_finish())
 
     def _load_sidebar_image(self):
-        img_path = "/Users/shoroz/Desktop/inklet/assets/img09.27.2026.png"
+        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        img_path = os.path.join(base_dir, "assets", "img09.27.2026.png")
+        if not os.path.exists(img_path):
+            img_path = "/Users/shoroz/Desktop/inklet/assets/img09.27.2026.png"
         try:
             from PIL import Image, ImageTk, ImageOps
             if os.path.exists(img_path):
@@ -489,8 +497,17 @@ class InkletWizard(tk.Tk):
     def launch_application(self):
         marker_file = os.path.expanduser("~/.inklet_setup_complete")
         try:
+            current_exe = os.path.abspath(sys.executable)
+            app_bundle = current_exe
+            while app_bundle and not app_bundle.endswith(".app") and app_bundle != "/":
+                app_bundle = os.path.dirname(app_bundle)
+            if app_bundle.endswith(".app") and os.path.exists(app_bundle):
+                st = os.stat(app_bundle)
+                marker_data = f"{app_bundle}:{st.st_ino}:{int(getattr(st, 'st_birthtime', st.st_ctime))}"
+            else:
+                marker_data = "Setup Complete"
             with open(marker_file, 'w') as f:
-                f.write("Setup Complete")
+                f.write(marker_data)
         except Exception as e:
             print(f"Could not write marker file: {e}")
 

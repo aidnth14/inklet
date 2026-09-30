@@ -1,8 +1,10 @@
-#!/usr/bin/env python3
-import os
 import sys
+# Prevent OpenCV binary extension recursive loader bug in PyInstaller
+sys.OpenCV_REPLACE_SYS_PATH_0 = True
+import os
 import platform
 import traceback
+import multiprocessing
 
 # ==========================================
 # CROSS-PLATFORM DPI & ENVIRONMENT SETUP
@@ -31,18 +33,48 @@ def show_crash_dialog(title, message):
     except Exception:
         print(f"{title}: {message}")
 
+def should_show_wizard():
+    """Determines whether the setup wizard should be presented."""
+    current_exe = os.path.abspath(sys.executable)
+    # 1. Always show wizard if running directly from the mounted installer DMG volume
+    if "/Volumes/" in current_exe or "/Volumes/" in os.path.abspath(sys.argv[0]):
+        return True
+
+    marker_file = os.path.expanduser("~/.inklet_setup_complete")
+    if not os.path.exists(marker_file):
+        return True
+
+    # 2. Check if the app installation recorded matches the current installation
+    try:
+        with open(marker_file, "r") as f:
+            saved_info = f.read().strip()
+        
+        # If running as a frozen app bundle (.app)
+        app_bundle = current_exe
+        while app_bundle and not app_bundle.endswith(".app") and app_bundle != "/":
+            app_bundle = os.path.dirname(app_bundle)
+            
+        if app_bundle.endswith(".app") and os.path.exists(app_bundle):
+            st = os.stat(app_bundle)
+            current_id = f"{app_bundle}:{st.st_ino}:{int(getattr(st, 'st_birthtime', st.st_ctime))}"
+            if saved_info != current_id:
+                # App was reinstalled, replaced, or run from a new location
+                return True
+            return False
+        else:
+            return False
+    except Exception:
+        return True
+
 def main():
     try:
-        # Universal home directory marker file (safely resolves on Mac, Windows, and Linux)
-        marker_file = os.path.expanduser("~/.inklet_setup_complete")
-        
-        if not os.path.exists(marker_file):
-            # 1. First time running: Import and launch the Setup Wizard
+        if should_show_wizard():
+            # 1. First time running / re-installed / running from DMG: Launch Setup Wizard
             import wizard
             app = wizard.InkletWizard()
             app.mainloop()
         else:
-            # 2. Already installed: Import and launch the Main 3D Puppet
+            # 2. Already installed and setup complete: Launch Main 3D Puppet
             import puppet
             puppet.main()
             
@@ -56,8 +88,13 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     # Ensure PyInstaller's temporary unpack directory is first in the module search path
     if getattr(sys, 'frozen', False):
         sys.path.insert(0, sys._MEIPASS)
+        try:
+            os.chdir(sys._MEIPASS)
+        except Exception:
+            pass
         
     main()

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import sys
+# Prevent OpenCV binary extension recursive loader bug in PyInstaller
+sys.OpenCV_REPLACE_SYS_PATH_0 = True
 import os
 import math
 import time
@@ -185,7 +187,7 @@ class MoodKnowledgeBase:
 
         return {"mood_key": self.active_mood, "info": active_info, "confidence": self.mood_confidence, "weights": self.mood_weights}
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 BASE_IMG_PATH = os.path.join(BASE_DIR, "base.png")
 
 def get_software_icon():

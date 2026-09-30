@@ -1,0 +1,15 @@
+# Inklet runtime + build dependencies (SLIM)
+# headless opencv = no ffmpeg/Qt GUI dylibs (app never calls imshow)
+PySide6==6.11.2
+opencv-python-headless==4.11.0.86
+mediapipe==0.10.35 ; platform_machine != "x86_64" or sys_platform != "darwin"
+mediapipe==0.10.21 ; platform_machine == "x86_64" and sys_platform == "darwin"
+numpy==1.26.4
+Pillow==12.3.0
+
+# Packaging
+pyinstaller==6.22.3
+
+# NOTE: mediapipe pulls jax/jaxlib + scipy on some platforms; they are NOT
+# needed by the Tasks (FaceLandmarker) API. Uninstall them before building to
+# shave ~450MB:   pip uninstall -y jax jaxlib scipy
